@@ -1,0 +1,163 @@
+\chapter{Fracture}
+
+A critical degradation mechanism observed during the operating lifetime of solid-oxide fuel cell is the formation and propagation of microcracks throughout the functional layer of the anode. These microcracks not only reduce the mechanical integrity of the cell, they are detrimental to its electrochemical performance. They disrupt the ionic transport of fuels within the solid structure, cause delamination around regions with potentially high reaction rates, and result in macroscopic fragmentation of otherwise contiguous cell structures.
+
+The fracture observed in the anode structure is caused by oxidation reactions which occur non-uniformly through the composite structure. Oxygen ions diffuse across the electrolyte to the anode where it reacts with a fuel (typically hydrogen). However, when there is excess oxygen in the anode, it will oxidize the nickel to form nickel-oxide. The phase transformation from nickel to nickel-oxide results in a large volumetric expansion. Due to the heterogeneity of the anode structure, this non-uniform expansion creates considerable internal stresses within the system, especially on the ceramic electrolyte material, which is conventionally chosen to be Yttria-stabalized Zirconia (YSZ). Once enough oxidation has taken place, the transformation strain within the ceramic is relieved by brittle fracture.   
+
+In this chapter, a diffuse-interface model is introduced to study the degradation caused by nickel oxidation within the anode structure of SOFCs and the resulting fracture of the ceramic electrolyte. A particular emphasis is given to the role of the anode microstructure and surface energetics and how these materials design parameters affect critical aspects of the problem such as stress concentration, crack deflection/blunting, and damage accumulation. 
+
+\todo{
+Polycrystalline nature of YSZ and the effect of grain boundaries on observed fracture structures
+}\\
+\todo{
+Homogenization Scheme
+}\\
+\todo{
+assumptions
+}\\
+\todo{
+Brittle fracture / unstable fracture
+}\\
+\todo{
+Assymmetrically notched beam
+}
+\todo{
+"quasistatic fracture in a macroscopically isotropic elastic medium with neglible inertial effects" Hakim & Karma 2005}
+\todo{
+the phase field representation of the fracture field is essentially a gradient-type or gradient enhanced damage model.}
+\section{Background}
+
+\section{The Model}
+
+A first step in developing a model used to study the formation and propagation of cracks is deciding how to represent the crack structure. As with most problems involving sharp interfaces, this is made difficult by the discontinuities of material properties and differences in governing equations across the interface. In the context of brittle fracture, the elastic moduli vary from finite values in the bulk material to zero within the crack and the damaged material can no longer support stresses. The length scale over which this variation occurs is generally considered very small compared and is treated as a boundary within traditional engineering models. However, this treatment requires an explicit representation of the crack surface (usually a mesh) that is rather difficult to carry out in practice. 
+
+As an alternative to traditional methods, the phase field method represents the crack structure implicitly using a scalar field. This allows for the computational convenience of regular grid, finite differencing, and automatic treatment of branching/merging events. However, the ease of implementation comes at a price. An implicit representation of the crack requires that it have a diffuse interface so that the crack field varies continuously from the crack to the bulk material. While the width of the diffuse interface can, in theory, be made very thin, it must be fully resolved for accuracy. This creates a strict trade-off between accuracy and computational viability. In practice, this computational convenience of the diffuse interface typically results in diminished accuracy.  
+
+Several models of brittle fracture employing the phase field framework have been introduced in the literature. The work of Kevin, Kesseler, and Levine (KKL) provides the basic phase field approach to crack formation and propagation used in this thesis. Variations of the KKL model have been successfully applied to structurally and elastically heterogenous systems such as biological composites~\cite{Murali2011} and reinforced composite with misfit strains~\cite{Biner2009} . This work is extended to accommodate the necessary features for application to SOFCs, such as heterogeneous composite structures and internal transformation strains.  
+ 
+To represent the crack, a scalar field, $\phi$, is introduced and is referred to as the fracture field. Its spatio-temporal evolution designates the regions of material capable of supporting a load from those that have been damaged. It takes a value of $1$ in the undamaged material, a value of $0$ with the crack and pore space, and varies continuously across the crack or pore interfaces. The total free energy of the system can be postulated in terms of the fracture field and is given in Eq.~\ref{eq:free_energy}.
+
+\begin{align}\label{eq:free_energy}
+F = \int \left[ \frac{W_{\phi}}{2}|\nabla\phi|^2 + A_{\phi}V(\phi) + g(\phi)(E - E_c)\right]dr	
+\end{align}
+
+The first two terms in the integrand of the free energy (Eq.~\ref{eq:free_energy}) are the standard gradient energy and double well terms. The parameters $W_{\phi}$ and $A_{\phi}$ together set the width and energy of the interface of the fracture field. The third term accounts for the strain energy present in the system. The modulating function $g(\phi) = (4-3\phi)\phi^3$ is chosen such that $g(0)=0$ and $g(1)=1$. The result effect is that regions with an elastic strain energy density, $E$, that exceeds the critical threshold value, $E_c$, will tend to form cracks $(\phi=0, g(\phi)=0)$ in order to reduce the total energy. This approach has been shown to accurately reproduce Griffith's criterion and crack branching.
+
+In a system undergoing transformation strains, the linear elastic strain energy density, $E$, is given by the elastic strain, $\eps^e$, and determines when the crack becomes energetically favorable. It is expressed generally in Eq.~\ref{eq:elastic_strain_energy_density} using the compliance tensor, $C_{ijkl}$ which contains the elastic moduli. For an isotropic material, the compliance tensor simplifies to $C_{ijkl}=\mu(\delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk}) + \lambda \delta_{ij}\delta_{kl}$, where $\delta$ is the kronecker-delta function defined in Eq.~\ref{eq:kronecker_delta}, and subscripts denote tensor notation. The shear modulus and Lam\'e's first constant are indicated by $\mu$ and $\lambda$, respectively.  The strain energy density is expressed in Eq.~\ref{eq:isotropic_strain_energy_density} for an isotropic material and general eigenstrain. For an isotropic and hydrostatic eigenstrain, the strain energy reduces further to Eq.~\ref{eq:hydrostatic_strain_energy_density}. The bulk modulus depends on the dimensionality, $d$, of the system, $K_d = \lambda+2\mu/d$.
+
+
+\begin{align}
+    E &= \frac{1}{2} C_{ijkl} \epsilon^e_{ij}\epsilon^e_{kl}	 \label{eq:elastic_strain_energy_density}\\
+	&= \frac{1}{2} C_{ijkl}\eps_{ij}\eps_{kl} - \frac{1}{2} C_{ijkl}(\eps_{ij}\eps^*_{kl} + \eps_{kl}\eps^*_{ij}) + \frac{1}{2} C_{ijkl}\eps^*_{ij}\eps^*_{kl} \notag\\
+	&=\left[\frac{\lambda}{2} \tr(\eps)^2 + \mu \tr(\eps^2)\right]- \left[ \lambda \tr(\eps)\tr(\eps^*) + 2\mu\tr(\eps\,\eps^*) \right] + \left[\frac{\lambda}{2} \tr(\eps^*)^2 + \mu \tr(\eps^*\eps^*)\right]\label{eq:isotropic_strain_energy_density}\\
+	&= 	\frac{1}{2} \lambda \tr(\eps)^2 + \mu\tr(\eps^2) - K_d \tr(\eps^*)\tr(\eps) + \frac{1}{2}K_d \tr(\eps^*)^2\label{eq:hydrostatic_strain_energy_density}
+\end{align}
+
+\begin{align} \label{eq:kronecker_delta}
+	\delta_{ij} =
+	\begin{cases}
+		1, & i=j\\
+		0, & i\ne j
+	\end{cases}
+\end{align}
+
+Depending on characteristic timescale on which fracture occurs, the fracture field can be evolved in a quasistatic or dynamic method. The quasistatic evolution assumes that the system reaches mechanical equilibrium on a timescale that is much faster than crack propagation. On the other hand, dynamic fracture assumes that these two timescales are similar and that the details of elastic wave propagation affect the fracture field. Here, the system is evolved in a quasistatic fashion. The displacements $u_i$, stresses $\sigma_{ij}$, and total strains $\eps_{ij}$ are evolved until mechanical equilibrium is satisfied to within a threshold value. The condition for mechanical equilibrium is given in Eq.~\ref{eq:mechanical_equilibrium}.
+
+\begin{align} \label{eq:mechanical_equilibrium}
+	\frac{\partial \sigma_{ij}}{\partial x_j} = 0
+\end{align}
+
+The strain (Eq.~\ref{eq:strain}) follows directly from the displacement and the stress can be calculated from variations in the total free energy (Eq.~\ref{eq:stress}). The free energy formulation results in a stress field that is modulated by the function $g(\phi)$ so that the stress within the fracture field goes to zero. In other words, cracks are not capable of transmitting any load.
+
+\begin{align} \label{eq:strain}
+\eps_{ij} = \frac{1}{2}\left( \frac{\partial u_i}{\partial x_j} + \frac{\partial u_j}{\partial x_i}\right) 
+\end{align}
+
+\begin{align}
+\sigma_{ij} &= \frac{\delta F}{\delta \eps_{ij}} \notag\\
+&= g(\phi)\frac{\partial E}{\partial \epsilon_{ij}}\label{eq:stress}\\
+ &= 
+\begin{cases}
+g(\phi)\left[\lambda\tr(\eps) + 2\mu \eps_{ij} - K_d\tr(\eps^*)\right], &\delta_{ij}=1 \\
+g(\phi)(2\mu\eps_{ij}), & \delta_{ij}=0	\notag
+\end{cases}	
+\end{align}
+
+The displacements evolve to mechanical equilibrium according to a damped wave equation using a fictitious time integration scheme. The two dampening terms with coefficients $\eta$ and $\xi$ dampen long and short wavelength modes in the displacement field. 
+
+\begin{align}
+\frac{\partial^2 u_i}{\partial t^2} + (\eta - \xi \nabla^2) \frac{\partial u_i}{\partial t} &= - \Gamma \frac{\delta F}{\delta u_i} = \Gamma \frac{\partial \sigma_{ij}}{\partial x_j}
+\end{align}
+
+Typically, a material that fails by brittle fracture is significantly more resistant to fracture under compression than under tension. To account for this, a slightly modified form of the elastic strain energy is considered when evolving the fracture field. The idea is to test whether the material is under local compression, and if so, remove the compressive part of the load from the strain energy. If the material is under a tensile load, then the standard strain energy density is used. This modified form breaks the symmetry in the energy density and prevents the material from cracking under compression. 
+
+\begin{align}\label{eq:modified_strain_energy_density}
+	E_{\phi} = 
+	\begin{cases}
+	E, & \tr(\eps^e) > 0 \\
+	E - \frac{a}{2} K_d \tr(\eps^e), & \tr(\eps^e) < 0	
+	\end{cases}
+\end{align}
+
+
+The constant, $a$, sets the strength of the modified part and should take a value $a>1$. Contours of the modified energy density for a plane-strain configuration are plotted in Fig. for values of $a=\{0,\tfrac{3}{2},3\}$ in the absence of shear strain, $\eps_{12}=\eps_{21}=0$. Note that a compressive strain in one direction can still result in a non-negative value of the strain energy, but requires a large tensile strain in the other direction.
+
+
+\begin{figure}[h!]
+	\begin{center}
+	\begin{tabular}{ccc}
+		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_0} &
+		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_15} &
+		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_3}  \\
+		(a) & (b) & (c)
+	\end{tabular}
+	\caption{Contours of $E_{\phi}$ with $a=\{0,\tfrac{3}{2},3\}$ are shown in subfigures (a),(b), and (c), respectively. The red, diagonal line indicates the values of strain where $\tr(\eps^e)=0$. Values of $a>1$ break the symmetry between tensile and compressive stresses so that material under local compression is more resistant to fracture.}
+	\label{fig:dihedral_angles}
+	\end{center}
+\end{figure}
+
+
+\section{Validation}
+
+\subsection{Eshelby's Inclusion Problem}
+
+Eshelby's inclusion problem is used to test that the model and implementation properly resolve the elastic fields resulting from an applied transformation strain. This is a classic problem in micro-mechanics that involves an isolated inclusion embedded within an infinite matrix material. An eigenstrain develops within the constrained inclusion due to phase transformation or thermal expansion and causes stress fields throughout the system. J. D. Eshelby solved for the elastic fields in the interior and exterior of an ellipsoidal inclusion for a given eigenstrain \cite{Eshelby1957, Eshelby1959} . In this section, the results of simulation are compared to his analytical predictions. 
+
+
+
+\begin{figure}[h!]
+	\begin{center}
+	\includegraphics[width=0.6\columnwidth]{ch-fracture/eshelby/inclusion}	
+	\caption{The eigenstrain is set to $\eps_T=0.01$ within a spherical inclusion (orange). Contours of the elastic field exterior to the inclusion are plotted within a two-dimensional slice for one component of the stress, $\sigma_{xx}$.}
+	\label{fig:eshelby_3d}
+	\end{center}
+\end{figure}
+
+A test system is configured with a spherical inclusion of radius $a=15$ embedded within the matrix material. Due to the finite limitations of computational simulation, the matrix material will be constrained to a spherical domain that is a factor of six larger in linear size than the inclusion. The system is first coarsened with conserved dynamics to establish a diffuse interface. The materials are set to be elastically homogeneous with Lame's constant and shear modulus given by $\lambda = 150$ and $\mu = 75$ GPa, resulting in $\nu = 1/3$. An eigenstrain, $\eps_T=0.01$, is applied only within the inclusion, and elastic fields are established throughout the system due to this structural inhomogeneity. Figure~\ref{fig:eshelby_3d} shows a three dimensional rendering of the system with a two dimensional slice cutting through the matrix. Contours of one component of the stress tensor, $\sigma_{xx}$, are plotted along the slice and indicate areas of tensile and compressive stress with variations in red and blue color.  
+
+\begin{figure}[h!]
+	\begin{center}
+	\includegraphics{ch-fracture/eshelby/stress_strain}
+	\caption{The subplots display values of the radial and tangential components of the stress and strain against the radial distance from the inclusion's center. The strains are normalized by the eigenstrain in the inclusion, $\eps_T=0.01$. The simulation results (blue symbols) agree closely with analytical predictions (solid black line).}  
+	\label{fig:eshelby_results}
+	\end{center}
+\end{figure}
+
+
+Insight into the elastic fields that develop as a result of the eigenstrain can be gained through a series of cutting and welding operations envisioned by Eshelby~\cite{Eshelby1957}. If one were to remove the inclusion from the matrix, it would undergo a stress-free strain equal to the eigenstrain. Now, apply a stress that forces the inclusion to its original size and return it to the matrix. An expansion would be observed in the inclusion, but less than that of the eigenstrain. Meanwhile, the matrix would feel compressive strains in the radial direction and tensile strains in the direction tangential to the inclusion surface. Eschelby found that the strain is constant within the inclusion and falls off with the cube of the radial distance within the matrix material. The solutions are summarized in Eq.~\ref{eq:eshelby} \cite{Mura1982}.
+
+\begin{equation}
+\begin{alignedat}{2}
+	\label{eq:eshelby}
+		\eps_r &= \eps_t = \frac{1}{3}\frac{1+\nu}{1-\nu} \eps_T, &&\qquad r<a \\
+		\eps_r &= -2\eps_t= \frac{-2}{3} \frac{1+\nu}{1-\nu} \left(\frac{a}{r}\right)^3 \eps_T, &&\qquad r>a
+\end{alignedat}
+\end{equation}
+
+
+Figure~\ref{fig:eshelby_results} compares simulation results to the analytical predictions along a line that extends radially from the center of the inclusion and into the matrix. The radial distance is normalize by the inclusion radius, $a=15$ and the strains are normalized by the isotropic eigenstrain within the inclusion, $\eps_T = 0.15$. The data values, shown as blue symbols, agree closely to the analytical predictions, which are plotted as solid black lines. Notice that the strains within the inclusion $r/a<1$ are constant and about 70\% of the applied eigenstrain.
+
+\subsection{Three-Point Bending Test}
+ 
+\section{Results}
+\section{Discussion}
