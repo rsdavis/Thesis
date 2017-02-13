@@ -22,7 +22,7 @@ Brittle fracture / unstable fracture
 Assymmetrically notched beam
 }
 \todo{
-"quasistatic fracture in a macroscopically isotropic elastic medium with neglible inertial effects" Hakim & Karma 2005}
+"quasistatic fracture in a macroscopically isotropic elastic medium with neglible inertial effects" Hakim \& Karma 2005}
 \todo{
 the phase field representation of the fracture field is essentially a gradient-type or gradient enhanced damage model.}
 \section{Background}
@@ -34,6 +34,8 @@ A first step in developing a model used to study the formation and propagation o
 As an alternative to traditional methods, the phase field method represents the crack structure implicitly using a scalar field. This allows for the computational convenience of regular grid, finite differencing, and automatic treatment of branching/merging events. However, the ease of implementation comes at a price. An implicit representation of the crack requires that it have a diffuse interface so that the crack field varies continuously from the crack to the bulk material. While the width of the diffuse interface can, in theory, be made very thin, it must be fully resolved for accuracy. This creates a strict trade-off between accuracy and computational viability. In practice, this computational convenience of the diffuse interface typically results in diminished accuracy.  
 
 Several models of brittle fracture employing the phase field framework have been introduced in the literature. The work of Kevin, Kesseler, and Levine (KKL) provides the basic phase field approach to crack formation and propagation used in this thesis. Variations of the KKL model have been successfully applied to structurally and elastically heterogenous systems such as biological composites~\cite{Murali2011} and reinforced composite with misfit strains~\cite{Biner2009} . This work is extended to accommodate the necessary features for application to SOFCs, such as heterogeneous composite structures and internal transformation strains.  
+
+\subsection{Diffuse Interface Formalism}
  
 To represent the crack, a scalar field, $\phi$, is introduced and is referred to as the fracture field. Its spatio-temporal evolution designates the regions of material capable of supporting a load from those that have been damaged. It takes a value of $1$ in the undamaged material, a value of $0$ with the crack and pore space, and varies continuously across the crack or pore interfaces. The total free energy of the system can be postulated in terms of the fracture field and is given in Eq.~\ref{eq:free_energy}.
 
@@ -42,6 +44,30 @@ F = \int \left[ \frac{W_{\phi}}{2}|\nabla\phi|^2 + A_{\phi}V(\phi) + g(\phi)(E -
 \end{align}
 
 The first two terms in the integrand of the free energy (Eq.~\ref{eq:free_energy}) are the standard gradient energy and double well terms. The parameters $W_{\phi}$ and $A_{\phi}$ together set the width and energy of the interface of the fracture field. The third term accounts for the strain energy present in the system. The modulating function $g(\phi) = (4-3\phi)\phi^3$ is chosen such that $g(0)=0$ and $g(1)=1$. The result effect is that regions with an elastic strain energy density, $E$, that exceeds the critical threshold value, $E_c$, will tend to form cracks $(\phi=0, g(\phi)=0)$ in order to reduce the total energy. This approach has been shown to accurately reproduce Griffith's criterion and crack branching.
+
+
+
+\subsection{Tension-Compression Split}
+
+The phase field model introduced by Kevine-Kesseler-Levine has been shown to faithfully reproduce fracture in systems subject to uniaxial or biaxial tensile loads. However, the model is not properly formulated to handle arbitrary or compressive loads. Although the elastic energy features an asymmetry in tension versus compression, this asymmetry is not reflected in computation of the local stresses. The stresses within the fracture field are always modulated to zero, and, as a result, the crack is unable to transmit compressive stresses. In this section, I propose a modification to the KKL model in order to allow transmission of compressive stresses across the crack faces.
+
+The ability of a crack to transmit compressive or shear stresses is often referred to as a "contact condition." A technique commonly used to represent a contact condition is to split the linear elastic strain energy density in positive and negative parts. In effect, the positive part ($E^+$) contains the energy due to tensile loads while the negative part ($E^-$) contains the energy due to compressive loads. The precise method in which the elastic energy is partitioned is somewhat discretionary and several approaches can be found in the literature. In this study, we take motivation from the work done by Amor, Marigo, and Maurini, where the strain is split into spherical and deviatoric parts, $\epsilon = \epsilon_S + \epsilon_D$, and used to reformulate the elastic energy.
+
+\begin{align}\label{eq:energy_split}
+E &= E^+ + E^- = \frac{1}{2}K\tr(\eps)^2 + \mu\tr(\eps_D\cdot\eps_D)\\
+E^+ &= \frac{K}{2}\tr^+(\eps^e)^2 + \mu\tr(\eps_D^e\cdot\eps_D^e)\\
+E^- &= \frac{K}{2}\tr^-(\eps^e)^2
+\end{align}
+
+In undamaged regions, where $\phi=1$, the elastic energy is formed by both positive and negative parts. However, in the region of a fully-formed crack ($\phi = 0$) the energy resulting from tensile loads should be fully relieved while compressive stresses must remain. To achieve this, the partitioned elastic energy is modulated by the crack order parameter as shown in Eq.~\ref{eq:elastic_modulated}. As a crack forms, $\phi\rightarrow 0$ and $g(\phi)\rightarrow 0$ removes the tensile load while leaving the compressive part in tact.
+
+\begin{align}\label{eq:elastic_modulated}
+E = \frac{K}{2}\tr^-(\eps^e)^2 + (g(\phi)+k_l)\left[\frac{K}{2}\tr^+(\eps^e)^2 + \mu\tr(\eps_D\cdot\eps_D)\right]	
+\end{align}
+
+
+
+\subsection{Order Parameter Evolution}
 
 In a system undergoing transformation strains, the linear elastic strain energy density, $E$, is given by the elastic strain, $\eps^e$, and determines when the crack becomes energetically favorable. It is expressed generally in Eq.~\ref{eq:elastic_strain_energy_density} using the compliance tensor, $C_{ijkl}$ which contains the elastic moduli. For an isotropic material, the compliance tensor simplifies to $C_{ijkl}=\mu(\delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk}) + \lambda \delta_{ij}\delta_{kl}$, where $\delta$ is the kronecker-delta function defined in Eq.~\ref{eq:kronecker_delta}, and subscripts denote tensor notation. The shear modulus and Lam\'e's first constant are indicated by $\mu$ and $\lambda$, respectively.  The strain energy density is expressed in Eq.~\ref{eq:isotropic_strain_energy_density} for an isotropic material and general eigenstrain. For an isotropic and hydrostatic eigenstrain, the strain energy reduces further to Eq.~\ref{eq:hydrostatic_strain_energy_density}. The bulk modulus depends on the dimensionality, $d$, of the system, $K_d = \lambda+2\mu/d$.
 
