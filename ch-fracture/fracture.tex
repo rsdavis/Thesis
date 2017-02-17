@@ -40,34 +40,63 @@ Several models of brittle fracture employing the phase field framework have been
 To represent the crack, a scalar field, $\phi$, is introduced and is referred to as the fracture field. Its spatio-temporal evolution designates the regions of material capable of supporting a load from those that have been damaged. It takes a value of $1$ in the undamaged material, a value of $0$ with the crack and pore space, and varies continuously across the crack or pore interfaces. The total free energy of the system can be postulated in terms of the fracture field and is given in Eq.~\ref{eq:free_energy}.
 
 \begin{align}\label{eq:free_energy}
-F = \int \left[ \frac{W_{\phi}}{2}|\nabla\phi|^2 + A_{\phi}V(\phi) + g(\phi)(E - E_c)\right]dr	
+F = \int \left[ \frac{W_{\phi}}{2}|\nabla\phi|^2 + A_{\phi}V(\phi) + E_\phi(\eps)\right]dr	
 \end{align}
 
 The first two terms in the integrand of the free energy (Eq.~\ref{eq:free_energy}) are the standard gradient energy and double well terms. The parameters $W_{\phi}$ and $A_{\phi}$ together set the width and energy of the interface of the fracture field. The third term accounts for the strain energy present in the system. The modulating function $g(\phi) = (4-3\phi)\phi^3$ is chosen such that $g(0)=0$ and $g(1)=1$. The result effect is that regions with an elastic strain energy density, $E$, that exceeds the critical threshold value, $E_c$, will tend to form cracks $(\phi=0, g(\phi)=0)$ in order to reduce the total energy. This approach has been shown to accurately reproduce Griffith's criterion and crack branching.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tension-Compression Split} \label{sec:elastic_split}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+The free energy shown in Eq.~\ref{eq:free_energy} is similar in form to the fracture model proposed by Karma, Kesseler, and Levine (KKL) \cite{Karma2001}\cite{Henry2004}. However, the KKL model has only been formulated and tested for systems under tensile strains. Their approach can not physically model more complex loading situations where the strain may be primarily compressive. In those cases, the KKL model completely ignores all stresses within cracked regions, even though it is reasonable to believe that the crack should transmit compressive stresses. In this section, I propose a modification to the KKL model in order to allow transmission of compressive stresses across the crack faces.
 
-\subsection{Tension-Compression Split}
-
-The phase field model introduced by Kevine-Kesseler-Levine has been shown to faithfully reproduce fracture in systems subject to uniaxial or biaxial tensile loads. However, the model is not properly formulated to handle arbitrary or compressive loads. Although the elastic energy features an asymmetry in tension versus compression, this asymmetry is not reflected in computation of the local stresses. The stresses within the fracture field are always modulated to zero, and, as a result, the crack is unable to transmit compressive stresses. In this section, I propose a modification to the KKL model in order to allow transmission of compressive stresses across the crack faces.
-
-The ability of a crack to transmit compressive or shear stresses is often referred to as a "contact condition." A technique commonly used to represent a contact condition is to split the linear elastic strain energy density in positive and negative parts. In effect, the positive part ($E^+$) contains the energy due to tensile loads while the negative part ($E^-$) contains the energy due to compressive loads. The precise method in which the elastic energy is partitioned is somewhat discretionary and several approaches can be found in the literature. In this study, we take motivation from the work done by Amor, Marigo, and Maurini, where the strain is split into spherical and deviatoric parts, $\epsilon = \epsilon_S + \epsilon_D$, and used to reformulate the elastic energy.
+The ability of a crack to transmit compressive or shear stresses is often referred to as a "contact condition." A technique commonly used to represent a contact condition is to split the linear elastic strain energy density into positive and negative parts. In effect, the positive part ($E^+$) contains the energy due to tensile loads while the negative part ($E^-$) contains the energy due to compressive loads. The precise method in which the elastic energy is partitioned is somewhat discretionary and several approaches can be found in the literature \cite{Lancioni2009} \cite{Amor2009} \cite{Miehe2010}. In this study, we take motivation from the work of Amor, Marigo, and Maurini \cite{Amor2009} where the strain is split into spherical and deviatoric parts, $\epsilon = \epsilon_S + \epsilon_D$, and used to reformulate the elastic energy.
 
 \begin{align}\label{eq:energy_split}
-E &= E^+ + E^- = \frac{1}{2}K\tr(\eps)^2 + \mu\tr(\eps_D\cdot\eps_D)\\
-E^+ &= \frac{K}{2}\tr^+(\eps^e)^2 + \mu\tr(\eps_D^e\cdot\eps_D^e)\\
-E^- &= \frac{K}{2}\tr^-(\eps^e)^2
+E &= \frac{1}{2}\lambda \tr(\eps^e)2 + \mu \tr(\eps^e\cdot\eps^e)\\
+E &= \frac{1}{2}K\tr(\eps^e)^2 + \mu\tr(\eps_D^e\cdot\eps_D^e)\\
+E &= \frac{1}{2}K\tr^-(\eps^e)^2 + \left[ \frac{1}{2}K\tr^+(\eps^e)^2 + \mu\tr(\eps_D^e\cdot\eps_D^e)\right]\\
+E &= E^- + E^+
 \end{align}
 
-In undamaged regions, where $\phi=1$, the elastic energy is formed by both positive and negative parts. However, in the region of a fully-formed crack ($\phi = 0$) the energy resulting from tensile loads should be fully relieved while compressive stresses must remain. To achieve this, the partitioned elastic energy is modulated by the crack order parameter as shown in Eq.~\ref{eq:elastic_modulated}. As a crack forms, $\phi\rightarrow 0$ and $g(\phi)\rightarrow 0$ removes the tensile load while leaving the compressive part in tact.
+In undamaged regions, where $\phi=1$, the elastic energy is formed by both positive and negative parts. However, in the region of a fully-formed crack ($\phi = 0$) the energy resulting from tensile loads should be fully relieved while compressive stresses must remain. To achieve this, the partitioned elastic energy is modulated by the crack order parameter as $E = E^- + [g(\phi)+k_l]E^+$. As a crack forms, $\phi\rightarrow 0$ and $g(\phi)\rightarrow 0$ removes the tensile load while leaving the compressive part in tact. The small parameter $k_l$ is referred to as the "residual stress" and is recommended for numerical stability \cite{Amor2009}. The final form of the free energy with an elastic energy partitioned to allow transmission of compresive stresses across the crack face is shown in Eq.~\ref{eq:free_energy_final}.
 
-\begin{align}\label{eq:elastic_modulated}
-E = \frac{K}{2}\tr^-(\eps^e)^2 + (g(\phi)+k_l)\left[\frac{K}{2}\tr^+(\eps^e)^2 + \mu\tr(\eps_D\cdot\eps_D)\right]	
+\begin{align}\label{eq:free_energy_final}
+	F &= \int \left[ \frac{W_{\phi}}{2}|\nabla\phi|^2 + A_{\phi}V(\phi) + [g(\phi)+k_l]E^+ + E^-\right]dr\\
+	E^+ &= \frac{K}{2} \tr^+(\eps^e)^2 + \mu\tr(\eps_D^e\cdot\eps_D^e)\\
+	E^- &= \frac{K}{2} \tr^-(\eps^e)^2
 \end{align}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tension-Compression Asymmetry}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Typically, a material that fails by brittle fracture is significantly more resistant to fracture under compression than under tension. To account for this, Henry and Levine \cite{Henry2004} introduce a symmetry breaking term into the phase field fracture model. A similar approach is taken in this work, but the term is adapted to satisfy the energy partition discussed previously in Sec.~\ref{sec:elastic_split}. The final form of the linear elastic energy density is given in Eq.~\ref{eq:modified_strain_energy_density} where the symmetry breaking term is $\tfrac{1}{2}(a-1)K\tr^-(\eps^e)^2$. The idea is that when the material is under compression, $\tr^-(\eps^e)$ will be positive and the symmetry breaking term will reduce the elastic energy, assuming $(a>1)$. This modified form prevents the material from cracking under compression.
+
+\begin{align}\label{eq:modified_strain_energy_density}
+	E_{\phi} = \frac{K}{2}\tr^-(\eps^e)^2 + [g(\phi)+k_l] \left[K\tr^(\eps)^2 + \mu\tr(\eps_D^e\cdot\eps_D^e) - \frac{a-1}{2}K\tr^-(\eps^e)^2\right]
+\end{align}
+
+The constant, $a$, sets the strength of the asymmetry. For $a=1$, there is no asymmetry between tensile and compressive loads, and the elastic energy will take its standard value for an isotropic material. For $a\ge \tfrac{3}{2}$, it is impossible for a crack to form in a region under pure compression. Contours of the modified elastic energy density are plotted in Fig.~\ref{fig:elastic_asymmetry} for the case of biaxial strain. The red line displays the axis of symmetry $\tr(\eps^e)=0$ in the case that $a=1$. For an asymmetry $a\ge \tfrac{3}{2}$ a compressive strain in one direction will still result in a finite elastic energy if there is a large tensile strain in the other principal direction. As a side note, the $(a-1)$ is formulated so that the value of $a$ corresponds with the convention set by Henry and Levine \cite{Henry2004}. The value of $a$ will, in theory, be set by the fracture toughness of the material under tensile versus compression. In practice, however, such a parameterization is difficult to perform and the value of $a$ is chosen from an informed judgement. 
+
+\begin{figure}[h!]
+	\begin{center}
+	\begin{tabular}{ccc}
+		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_0} &
+		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_15} &
+		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_3}  \\
+		(a) & (b) & (c)
+	\end{tabular}
+	\caption{Contours of $E_{\phi}$ with $a=\{0,\tfrac{3}{2},3\}$ are shown in subfigures (a),(b), and (c), respectively. The red, diagonal line indicates the values of strain where $\tr(\eps^e)=0$. Values of $a>1$ break the symmetry between tensile and compressive stresses so that material under local compression is more resistant to fracture.}
+	\label{fig:elastic_asymmetry}
+	\end{center}
+\end{figure}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Order Parameter Evolution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In a system undergoing transformation strains, the linear elastic strain energy density, $E$, is given by the elastic strain, $\eps^e$, and determines when the crack becomes energetically favorable. It is expressed generally in Eq.~\ref{eq:elastic_strain_energy_density} using the compliance tensor, $C_{ijkl}$ which contains the elastic moduli. For an isotropic material, the compliance tensor simplifies to $C_{ijkl}=\mu(\delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk}) + \lambda \delta_{ij}\delta_{kl}$, where $\delta$ is the kronecker-delta function defined in Eq.~\ref{eq:kronecker_delta}, and subscripts denote tensor notation. The shear modulus and Lam\'e's first constant are indicated by $\mu$ and $\lambda$, respectively.  The strain energy density is expressed in Eq.~\ref{eq:isotropic_strain_energy_density} for an isotropic material and general eigenstrain. For an isotropic and hydrostatic eigenstrain, the strain energy reduces further to Eq.~\ref{eq:hydrostatic_strain_energy_density}. The bulk modulus depends on the dimensionality, $d$, of the system, $K_d = \lambda+2\mu/d$.
 
@@ -87,65 +116,41 @@ In a system undergoing transformation strains, the linear elastic strain energy 
 	\end{cases}
 \end{align}
 
-Depending on characteristic timescale on which fracture occurs, the fracture field can be evolved in a quasistatic or dynamic method. The quasistatic evolution assumes that the system reaches mechanical equilibrium on a timescale that is much faster than crack propagation. On the other hand, dynamic fracture assumes that these two timescales are similar and that the details of elastic wave propagation affect the fracture field. Here, the system is evolved in a quasistatic fashion. The displacements $u_i$, stresses $\sigma_{ij}$, and total strains $\eps_{ij}$ are evolved until mechanical equilibrium is satisfied to within a threshold value. The condition for mechanical equilibrium is given in Eq.~\ref{eq:mechanical_equilibrium}.
 
-\begin{align} \label{eq:mechanical_equilibrium}
-	\frac{\partial \sigma_{ij}}{\partial x_j} = 0
-\end{align}
 
-The strain (Eq.~\ref{eq:strain}) follows directly from the displacement and the stress can be calculated from variations in the total free energy (Eq.~\ref{eq:stress}). The free energy formulation results in a stress field that is modulated by the function $g(\phi)$ so that the stress within the fracture field goes to zero. In other words, cracks are not capable of transmitting any load.
 
-\begin{align} \label{eq:strain}
-\eps_{ij} = \frac{1}{2}\left( \frac{\partial u_i}{\partial x_j} + \frac{\partial u_j}{\partial x_i}\right) 
-\end{align}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Order Parameter Evolution New}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Evolution of the fracture order parameter, $\phi$, requires calculation of the stresses $\sigma_{ij}$, strains $\eps_{ij}$, and displacements $u_i$.
+The timescale in which the elastic fields relax and the characteristic velocity of crack propagation will determine the quasistatic or dynamic nature of fracture. In this work, we take a quasistatic approach to fracture evolution, which assumes that the timescale on which the elastic field relax is very fast compared to crack propagation. Therefore, a mechanical equilibrium is established throughout the evolution of the fracture field.
+
+To achieve mechanical equilibrium, the displacement fields are initialized and iteratively relaxed until the system reaches the condition for mechanical equilibrium, $\sigma_{ij,j} = 0$. This is done by first calculating the strains from the displacements, $\eps_{ij}=\tfrac{1}{2}(u_{i,j} + u_{j,i})$. The the stress are calculated from the strains and the elastic energy as shown in Eq.~\ref{eq:stress}.
+
+
+\begin{align*}\label{eq:stress}
+	\sigma_{ij} = \frac{\partial E}{\partial \eps_{ij}} 
+	=	K\tr^-(\eps^e)\delta_{ij} + (g(\phi)+k_l)\left[ K\tr^+(\eps^e)\delta_{ij} + 2\mu (\eps_D^e)_{ij}\right]
+\end{align*}
+
+
+The displacements can be iteratively relaxed to mechanical equilibrium according to a damped wave equation as shown in Eq.() with the free energy decent determined by the force balance. The time, $t$, is 'fictitious' in the sense that the displacements are assumed to relax instantaneously with respect to the fracture evolution, and it is only used as a dummy variable for the iterative relaxation. The dampening parameter, $\eta$, allows elastic energy to dissipate in transit to a relaxed state while the parameter $\xi$ penalizes high frequencies wavelength and is recomended for using finite differences on collocated grids.  
+
 
 \begin{align}
-\sigma_{ij} &= \frac{\delta F}{\delta \eps_{ij}} \notag\\
-&= g(\phi)\frac{\partial E}{\partial \epsilon_{ij}}\label{eq:stress}\\
- &= 
-\begin{cases}
-g(\phi)\left[\lambda\tr(\eps) + 2\mu \eps_{ij} - K_d\tr(\eps^*)\right], &\delta_{ij}=1 \\
-g(\phi)(2\mu\eps_{ij}), & \delta_{ij}=0	\notag
-\end{cases}	
-\end{align}
-
-The displacements evolve to mechanical equilibrium according to a damped wave equation using a fictitious time integration scheme. The two dampening terms with coefficients $\eta$ and $\xi$ dampen long and short wavelength modes in the displacement field. 
-
-\begin{align}
-\frac{\partial^2 u_i}{\partial t^2} + (\eta - \xi \nabla^2) \frac{\partial u_i}{\partial t} &= - \Gamma \frac{\delta F}{\delta u_i} = \Gamma \frac{\partial \sigma_{ij}}{\partial x_j}
-\end{align}
-
-Typically, a material that fails by brittle fracture is significantly more resistant to fracture under compression than under tension. To account for this, a slightly modified form of the elastic strain energy is considered when evolving the fracture field. The idea is to test whether the material is under local compression, and if so, remove the compressive part of the load from the strain energy. If the material is under a tensile load, then the standard strain energy density is used. This modified form breaks the symmetry in the energy density and prevents the material from cracking under compression. 
-
-\begin{align}\label{eq:modified_strain_energy_density}
-	E_{\phi} = 
-	\begin{cases}
-	E, & \tr(\eps^e) > 0 \\
-	E - \frac{a}{2} K_d \tr(\eps^e), & \tr(\eps^e) < 0	
-	\end{cases}
+\frac{\partial^2 u_i}{\partial t} + (\eta - \xi\nabla^2)\frac{\partial u_i}{\partial t} = -\Gamma \frac{\delta F}{\delta u_i} = \Gamma \frac{\partial \sigma_{ij}}{\partial x_j}
 \end{align}
 
 
-The constant, $a$, sets the strength of the modified part and should take a value $a>1$. Contours of the modified energy density for a plane-strain configuration are plotted in Fig. for values of $a=\{0,\tfrac{3}{2},3\}$ in the absence of shear strain, $\eps_{12}=\eps_{21}=0$. Note that a compressive strain in one direction can still result in a non-negative value of the strain energy, but requires a large tensile strain in the other direction.
 
-
-\begin{figure}[h!]
-	\begin{center}
-	\begin{tabular}{ccc}
-		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_0} &
-		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_15} &
-		\includegraphics[width=0.3\columnwidth]{ch-fracture/asymmetric_energy/plot_3}  \\
-		(a) & (b) & (c)
-	\end{tabular}
-	\caption{Contours of $E_{\phi}$ with $a=\{0,\tfrac{3}{2},3\}$ are shown in subfigures (a),(b), and (c), respectively. The red, diagonal line indicates the values of strain where $\tr(\eps^e)=0$. Values of $a>1$ break the symmetry between tensile and compressive stresses so that material under local compression is more resistant to fracture.}
-	\label{fig:dihedral_angles}
-	\end{center}
-\end{figure}
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Validation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Eshelby's Inclusion Problem}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Eshelby's inclusion problem is used to test that the model and implementation properly resolve the elastic fields resulting from an applied transformation strain. This is a classic problem in micro-mechanics that involves an isolated inclusion embedded within an infinite matrix material. An eigenstrain develops within the constrained inclusion due to phase transformation or thermal expansion and causes stress fields throughout the system. J. D. Eshelby solved for the elastic fields in the interior and exterior of an ellipsoidal inclusion for a given eigenstrain \cite{Eshelby1957, Eshelby1959} . In this section, the results of simulation are compared to his analytical predictions. 
 
